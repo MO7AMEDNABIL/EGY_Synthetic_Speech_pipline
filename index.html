@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TTS Dataset Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #7c6dfa;
+    --accent2: #fa6d9a;
+    --green: #4dffa0;
+    --red: #ff5f6d;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+    --radius: 12px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* animated noise bg */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 48px;
+  }
+  .logo {
+    font-size: 1.1rem; font-weight: 800; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .logo span { color: var(--accent2); }
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; padding: 4px 10px;
+    border: 1px solid var(--border); border-radius: 99px;
+    color: var(--muted); letter-spacing: 0.08em;
+  }
+
+  /* Section title */
+  .section-title {
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    margin-bottom: 14px;
+  }
+
+  /* Config card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  /* URL input */
+  .input-row {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .input-field {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .input-field:focus { border-color: var(--accent); }
+  .input-field::placeholder { color: var(--muted); }
+
+  /* Buttons */
+  .btn {
+    cursor: pointer; border: none; outline: none;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    letter-spacing: 0.05em; border-radius: 8px;
+    transition: all 0.18s ease;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff; padding: 13px 28px; font-size: 0.9rem;
+    box-shadow: 0 0 24px rgba(124,109,250,0.35);
+  }
+  .btn-primary:hover { background: #9485fd; box-shadow: 0 0 32px rgba(124,109,250,0.5); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { background: var(--border); color: var(--muted); box-shadow: none; cursor: not-allowed; }
+
+  .btn-approve {
+    background: rgba(77,255,160,0.12); color: var(--green);
+    border: 1px solid rgba(77,255,160,0.3);
+    padding: 12px 24px; font-size: 0.85rem;
+    flex: 1;
+  }
+  .btn-approve:hover { background: rgba(77,255,160,0.22); }
+
+  .btn-reject {
+    background: rgba(255,95,109,0.12); color: var(--red);
+    border: 1px solid rgba(255,95,109,0.3);
+    padding: 12px 24px; font-size: 0.85rem;
+    flex: 1;
+  }
+  .btn-reject:hover { background: rgba(255,95,109,0.22); }
+
+  .btn-save {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; padding: 14px 36px; font-size: 0.95rem;
+    box-shadow: 0 0 28px rgba(124,109,250,0.3);
+  }
+  .btn-save:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  .btn-sm {
+    padding: 8px 18px; font-size: 0.78rem;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    color: var(--muted);
+    padding: 10px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 14px;
+    min-height: 42px;
+  }
+  .pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0;
+    animation: pulse 1.2s infinite;
+  }
+  .pulse.green { background: var(--green); animation: none; }
+  .pulse.red { background: var(--red); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+  /* Progress bar */
+  .progress-wrap {
+    width: 100%; height: 3px;
+    background: var(--border); border-radius: 99px;
+    margin-top: 16px; overflow: hidden;
+    display: none;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-bar {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    transition: width 0.4s ease;
+    animation: shimmer 2s linear infinite;
+    background-size: 200% 100%;
+  }
+  @keyframes shimmer {
+    0%{background-position:200% 0} 100%{background-position:-200% 0}
+  }
+
+  /* File selector */
+  .file-selector-wrap { display: none; }
+  .file-selector-wrap.visible { display: block; }
+
+  select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b85' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    transition: border 0.2s;
+  }
+  select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  /* Text preview */
+  .text-preview {
+    font-family: 'DM Mono', monospace; font-size: 0.82rem;
+    color: var(--muted); padding: 14px 16px;
+    background: var(--bg); border: 1px dashed var(--border);
+    border-radius: 8px; margin-top: 12px;
+    min-height: 48px; direction: rtl;
+    line-height: 1.7;
+    display: none;
+  }
+  .text-preview.visible { display: block; }
+
+  /* Custom audio player */
+  .audio-player {
+    display: none; margin-top: 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 20px;
+    align-items: center; gap: 16px;
+  }
+  .audio-player.visible { display: flex; }
+
+  .play-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent);
+    border: none; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s;
+    box-shadow: 0 0 16px rgba(124,109,250,0.4);
+  }
+  .play-btn:hover { transform: scale(1.08); }
+  .play-btn svg { width: 18px; height: 18px; fill: white; }
+
+  .player-timeline { flex: 1; }
+  .player-progress {
+    width: 100%; height: 4px; background: var(--border);
+    border-radius: 99px; cursor: pointer; appearance: none;
+    outline: none;
+  }
+  .player-progress::-webkit-slider-thumb {
+    appearance: none; width: 12px; height: 12px;
+    border-radius: 50%; background: var(--accent); cursor: pointer;
+  }
+  .player-time {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    color: var(--muted); margin-top: 6px;
+    display: flex; justify-content: space-between;
+  }
+
+  /* Review panel */
+  .review-panel { display: none; }
+  .review-panel.visible { display: block; }
+
+  .action-row {
+    display: flex; gap: 12px; margin-bottom: 14px;
+  }
+
+  .comment-wrap { display: none; }
+  .comment-wrap.visible { display: block; margin-top: 12px; }
+
+  textarea {
+    width: 100%; background: var(--bg);
+    border: 1px solid var(--red); border-radius: 8px;
+    padding: 12px 16px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 0.82rem;
+    resize: vertical; min-height: 80px; outline: none;
+  }
+  textarea::placeholder { color: var(--muted); }
+
+  .submit-reject-btn {
+    margin-top: 10px;
+    background: var(--red); color: #fff;
+    border: none; padding: 10px 22px;
+    border-radius: 8px; font-family: 'Syne', sans-serif;
+    font-weight: 700; cursor: pointer; font-size: 0.82rem;
+    transition: opacity 0.18s;
+  }
+  .submit-reject-btn:hover { opacity: 0.85; }
+
+  /* Queue list */
+  .queue-list { list-style: none; }
+  .queue-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    transition: background 0.15s;
+  }
+  .queue-item:last-child { border-bottom: none; }
+  .queue-item:hover { background: var(--surface2); }
+  .queue-item .item-id { color: var(--accent); margin-right: 12px; }
+  .queue-item .item-text { color: var(--muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: right; }
+  .chip {
+    font-size: 0.65rem; padding: 3px 9px; border-radius: 99px;
+    font-weight: 700; letter-spacing: 0.06em; flex-shrink: 0; margin-left: 10px;
+  }
+  .chip-approved { background: rgba(77,255,160,0.15); color: var(--green); }
+  .chip-rejected { background: rgba(255,95,109,0.15); color: var(--red); }
+  .chip-pending { background: rgba(124,109,250,0.12); color: var(--accent); }
+
+  /* Save section */
+  .save-section {
+    display: none; text-align: center; padding-top: 8px;
+  }
+  .save-section.visible { display: block; }
+  .save-note {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); margin-top: 12px;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px; background: var(--border); margin: 28px 0;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 24px;
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+    color: var(--text); z-index: 9999;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">TTS<span>·</span>Studio</div>
+    <div class="badge">Dataset Builder v1.0</div>
+  </header>
+
+  <!-- Step 1: Connect -->
+  <div class="section-title">01 — Backend Connection</div>
+  <div class="card">
+    <div class="input-row">
+      <input class="input-field" id="backendUrl" type="text"
+        placeholder="https://xxxx-xx-xx-xx-xx.ngrok-free.app" />
+      <button class="btn btn-primary btn-sm" onclick="setUrl()">Connect</button>
+    </div>
+    <div id="connectStatus" class="status-bar">
+      <div class="pulse" id="connectPulse"></div>
+      <span id="connectMsg">Paste your ngrok URL and click Connect</span>
+    </div>
+  </div>
+
+  <!-- Step 2: Generate -->
+  <div class="section-title">02 — Generate Audio</div>
+  <div class="card">
+    <button class="btn btn-primary" id="generateBtn" onclick="startGenerate()" disabled>
+      ⚡ Generate TTS
+    </button>
+    <div id="progressWrap" class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div id="genStatus" class="status-bar" style="display:none">
+      <div class="pulse" id="genPulse"></div>
+      <span id="genMsg">Waiting...</span>
+    </div>
+  </div>
+
+  <!-- Step 3: Review -->
+  <div id="reviewSection" class="file-selector-wrap">
+    <div class="section-title">03 — Review Files</div>
+    <div class="card">
+      <select id="fileSelect" onchange="selectFile()">
+        <option value="">— Choose a file to review —</option>
+      </select>
+
+      <div class="text-preview" id="textPreview"></div>
+
+      <!-- Custom Audio Player -->
+      <div class="audio-player" id="audioPlayer">
+        <button class="play-btn" id="playBtn" onclick="togglePlay()">
+          <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="player-timeline">
+          <input type="range" class="player-progress" id="seekBar" value="0" min="0" step="0.1" oninput="seekAudio()"/>
+          <div class="player-time">
+            <span id="currentTime">0:00</span>
+            <span id="totalTime">0:00</span>
+          </div>
+        </div>
+      </div>
+      <audio id="audioEl" style="display:none"></audio>
+
+      <!-- Review actions -->
+      <div class="review-panel" id="reviewPanel">
+        <div class="divider"></div>
+        <div class="action-row">
+          <button class="btn btn-approve" onclick="approve()">✓ Approve</button>
+          <button class="btn btn-reject" onclick="showReject()">✗ Reject</button>
+        </div>
+        <div class="comment-wrap" id="commentWrap">
+          <textarea id="rejectComment" placeholder="Write your reason for rejection (Arabic or English)..."></textarea>
+          <button class="submit-reject-btn" onclick="submitReject()">Submit Rejection</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queue -->
+    <div class="section-title">Review Queue</div>
+    <div class="card" style="padding:0">
+      <ul class="queue-list" id="queueList"></ul>
+    </div>
+
+    <!-- Save -->
+    <div class="save-section" id="saveSection">
+      <div class="divider"></div>
+      <button class="btn btn-save" onclick="saveDataset()">💾 Save STT Dataset JSON</button>
+      <div class="save-note" id="saveNote"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let BASE_URL = '';
+let files = [];       // [{id, text, filename}]
+let decisions = {};   // id -> {status:'approved'|'rejected', comment?}
+let currentFile = null;
+let pollInterval = null;
+
+const audioEl = document.getElementById('audioEl');
+
+// ── Connect ──────────────────────────────────────────────
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'ngrok-skip-browser-warning': '1'
+};
+
+function setUrl() {
+  let url = document.getElementById('backendUrl').value.trim().replace(/\/$/, '');
+  if (!url) return;
+  BASE_URL = url;
+  document.getElementById('connectMsg').textContent = 'Testing connection...';
+  fetch(`${BASE_URL}/status`, { headers: HEADERS })
+    .then(r => r.json())
+    .then(() => {
+      document.getElementById('connectMsg').textContent = `Connected to ${BASE_URL}`;
+      document.getElementById('connectPulse').className = 'pulse green';
+      document.getElementById('generateBtn').disabled = false;
+      showToast('✓ Backend connected');
+    })
+    .catch(() => {
+      document.getElementById('connectMsg').textContent = 'Connection failed — check URL';
+      document.getElementById('connectPulse').className = 'pulse red';
+    });
+}
+
+// ── Generate ──────────────────────────────────────────────
+function startGenerate() {
+  if (!BASE_URL) return;
+  document.getElementById('generateBtn').disabled = true;
+  document.getElementById('genStatus').style.display = 'flex';
+  document.getElementById('progressWrap').classList.add('visible');
+  document.getElementById('genMsg').textContent = 'Sending request...';
+
+  fetch(`${BASE_URL}/generate`, { method: 'POST', headers: HEADERS })
+    .then(r => r.json())
+    .then(() => {
+      document.getElementById('genMsg').textContent = 'Generating audio files...';
+      pollInterval = setInterval(pollStatus, 2500);
+      animateProgressIndeterminate();
+    })
+    .catch(e => {
+      document.getElementById('genMsg').textContent = 'Error: ' + e.message;
+      document.getElementById('genPulse').className = 'pulse red';
+    });
+}
+
+function animateProgressIndeterminate() {
+  let p = 0;
+  const bar = document.getElementById('progressBar');
+  const iv = setInterval(() => {
+    p = Math.min(p + Math.random() * 3, 90);
+    bar.style.width = p + '%';
+    if (!pollInterval) clearInterval(iv);
+  }, 400);
+}
+
+function pollStatus() {
+  fetch(`${BASE_URL}/status`, { headers: HEADERS })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        clearInterval(pollInterval); pollInterval = null;
+        document.getElementById('genMsg').textContent = 'Error: ' + data.error;
+        document.getElementById('genPulse').className = 'pulse red';
+        return;
+      }
+      if (data.files) {
+        document.getElementById('genMsg').textContent =
+          `Generated ${data.files.length} file(s)...`;
+      }
+      if (data.done) {
+        clearInterval(pollInterval); pollInterval = null;
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('genMsg').textContent =
+          `✓ Done — ${data.files.length} files ready`;
+        document.getElementById('genPulse').className = 'pulse green';
+        loadFiles(data.files);
+        showToast('🎉 Generation complete!');
+      }
+    });
+}
+
+// ── Load Files ────────────────────────────────────────────
+function loadFiles(fileList) {
+  files = fileList;
+  decisions = {};
+  const sel = document.getElementById('fileSelect');
+  sel.innerHTML = '<option value="">— Choose a file to review —</option>';
+  files.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.id;
+    opt.textContent = `[${f.id}] ${f.text.slice(0, 40)}${f.text.length > 40 ? '…' : ''}`;
+    sel.appendChild(opt);
+  });
+  document.getElementById('reviewSection').classList.add('visible');
+  renderQueue();
+}
+
+// ── Select File ───────────────────────────────────────────
+function selectFile() {
+  const id = document.getElementById('fileSelect').value;
+  if (!id) return;
+  currentFile = files.find(f => f.id == id);
+  if (!currentFile) return;
+
+  // Show text
+  const preview = document.getElementById('textPreview');
+  preview.textContent = currentFile.text;
+  preview.classList.add('visible');
+
+  // Load audio via fetch (needed to pass ngrok header)
+  loadAudioBlob(`${BASE_URL}/audio/${currentFile.filename}`);
+  document.getElementById('audioPlayer').classList.add('visible');
+  document.getElementById('reviewPanel').classList.add('visible');
+  document.getElementById('commentWrap').classList.remove('visible');
+  document.getElementById('rejectComment').value = '';
+
+  // Reset player UI
+  document.getElementById('playIcon').setAttribute('d', 'M8 5v14l11-7z');
+  document.getElementById('seekBar').value = 0;
+  document.getElementById('currentTime').textContent = '0:00';
+  document.getElementById('totalTime').textContent = '0:00';
+}
+
+// ── Audio Player ──────────────────────────────────────────
+let currentBlobUrl = null;
+
+function loadAudioBlob(url) {
+  document.getElementById('totalTime').textContent = '…';
+  // Revoke previous blob to free memory
+  if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; }
+  fetch(url, { headers: HEADERS })
+    .then(r => {
+      if (!r.ok) throw new Error('Audio fetch failed: ' + r.status);
+      return r.blob();
+    })
+    .then(blob => {
+      currentBlobUrl = URL.createObjectURL(blob);
+      audioEl.src = currentBlobUrl;
+      audioEl.load();
+    })
+    .catch(e => showToast('Audio load error: ' + e.message));
+}
+
+function togglePlay() {
+  if (audioEl.paused) { audioEl.play(); }
+  else { audioEl.pause(); }
+}
+
+audioEl.addEventListener('play', () => {
+  document.getElementById('playIcon').setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z');
+});
+audioEl.addEventListener('pause', () => {
+  document.getElementById('playIcon').setAttribute('d', 'M8 5v14l11-7z');
+});
+audioEl.addEventListener('ended', () => {
+  document.getElementById('playIcon').setAttribute('d', 'M8 5v14l11-7z');
+});
+audioEl.addEventListener('timeupdate', () => {
+  const seek = document.getElementById('seekBar');
+  if (audioEl.duration) {
+    seek.value = (audioEl.currentTime / audioEl.duration) * 100;
+    document.getElementById('currentTime').textContent = fmt(audioEl.currentTime);
+  }
+});
+audioEl.addEventListener('loadedmetadata', () => {
+  document.getElementById('seekBar').max = 100;
+  document.getElementById('totalTime').textContent = fmt(audioEl.duration);
+});
+
+function seekAudio() {
+  const pct = document.getElementById('seekBar').value;
+  audioEl.currentTime = (pct / 100) * audioEl.duration;
+}
+
+function fmt(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+// ── Review Actions ────────────────────────────────────────
+function approve() {
+  if (!currentFile) return;
+  decisions[currentFile.id] = { status: 'approved' };
+  document.getElementById('commentWrap').classList.remove('visible');
+  renderQueue();
+  advanceToNext();
+  showToast('✓ Approved');
+}
+
+function showReject() {
+  document.getElementById('commentWrap').classList.add('visible');
+  document.getElementById('rejectComment').focus();
+}
+
+function submitReject() {
+  if (!currentFile) return;
+  const comment = document.getElementById('rejectComment').value.trim();
+  decisions[currentFile.id] = { status: 'rejected', comment };
+  document.getElementById('commentWrap').classList.remove('visible');
+  renderQueue();
+  advanceToNext();
+  showToast('✗ Rejected');
+}
+
+function advanceToNext() {
+  const pending = files.filter(f => !decisions[f.id]);
+  if (pending.length > 0) {
+    document.getElementById('fileSelect').value = pending[0].id;
+    selectFile();
+  }
+  updateSaveSection();
+}
+
+// ── Queue ─────────────────────────────────────────────────
+function renderQueue() {
+  const list = document.getElementById('queueList');
+  list.innerHTML = '';
+  files.forEach(f => {
+    const d = decisions[f.id];
+    const li = document.createElement('li');
+    li.className = 'queue-item';
+    li.innerHTML = `
+      <span class="item-id">#${f.id}</span>
+      <span class="item-text">${f.text}</span>
+      <span class="chip ${d ? (d.status === 'approved' ? 'chip-approved' : 'chip-rejected') : 'chip-pending'}">
+        ${d ? d.status : 'pending'}
+      </span>`;
+    li.onclick = () => {
+      document.getElementById('fileSelect').value = f.id;
+      selectFile();
+    };
+    list.appendChild(li);
+  });
+}
+
+function updateSaveSection() {
+  const done = Object.keys(decisions).length;
+  const saveSection = document.getElementById('saveSection');
+  if (done > 0) {
+    saveSection.classList.add('visible');
+    const approved = Object.values(decisions).filter(d => d.status === 'approved').length;
+    document.getElementById('saveNote').textContent =
+      `${approved} approved · ${done - approved} rejected · ${files.length - done} pending`;
+  }
+}
+
+// ── Save Dataset ──────────────────────────────────────────
+function saveDataset() {
+  const approved = files
+    .filter(f => decisions[f.id]?.status === 'approved')
+    .map(f => ({ id: f.id, text: f.text, audio: `data/audio/${f.filename}` }));
+
+  if (!approved.length) { showToast('No approved files to save'); return; }
+
+  fetch(`${BASE_URL}/save`, {
+    method: 'POST',
+    headers: HEADERS,
+    body: JSON.stringify(approved)
+  })
+    .then(r => r.json())
+    .then(d => showToast(`💾 ${d.message}`))
+    .catch(e => showToast('Save failed: ' + e.message));
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
