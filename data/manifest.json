@@ -1,0 +1,92 @@
+[
+  {
+    "id": 0,
+    "text": "أنا رايح الجامعة دلوقتي",
+    "audio": "data/audio/0.wav"
+  },
+  {
+    "id": 1,
+    "text": "عايز أطلب كشري",
+    "audio": "data/audio/1.wav"
+  },
+  {
+    "id": 2,
+    "text": "فين أقرب محطة مترو",
+    "audio": "data/audio/2.wav"
+  },
+  {
+    "id": 3,
+    "text": "الجو حر النهارده",
+    "audio": "data/audio/3.wav"
+  },
+  {
+    "id": 4,
+    "text": "ممكن تساعدني",
+    "audio": "data/audio/4.wav"
+  },
+  {
+    "id": 5,
+    "text": "ال wifi بطيئ",
+    "audio": "data/audio/5.wav"
+  },
+  {
+    "id": 6,
+    "text": "انا هطلب uber",
+    "audio": "data/audio/6.wav"
+  },
+  {
+    "id": 7,
+    "text": "رقمي خمستاشر",
+    "audio": "data/audio/7.wav"
+  },
+  {
+    "id": 8,
+    "text": "عايز اعمل قهوة في البيت",
+    "audio": "data/audio/8.wav"
+  },
+  {
+    "id": 9,
+    "text": "قوليلي محطة الأتوبيس فين",
+    "audio": "data/audio/9.wav"
+  },
+  {
+    "id": 10,
+    "text": "هقولك على حوار العربية ده",
+    "audio": "data/audio/10.wav"
+  },
+  {
+    "id": 11,
+    "text": "البقال مش موجود",
+    "audio": "data/audio/11.wav"
+  },
+  {
+    "id": 12,
+    "text": "اقدر اساعدك ايه؟",
+    "audio": "data/audio/12.wav"
+  },
+  {
+    "id": 13,
+    "text": "جبت شاورما منين",
+    "audio": "data/audio/13.wav"
+  },
+  {
+    "id": 14,
+    "text": "هنروح نتفرج على فيلم امتى",
+    "audio": "data/audio/14.wav"
+  },
+  {
+    "id": 15,
+    "text": "الجو حلو النهاردة",
+    "audio": "data/audio/15.wav"
+  },
+  {
+    "id": 16,
+    "text": "لازم اخد بالي من الفلوس دي",
+    "audio": "data/audio/16.wav"
+  },
+  {
+    "id": 17,
+    "text": "قول لي الحقيقة يا عم",
+    "audio": "data/audio/17.wav"
+  }
+]
